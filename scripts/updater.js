@@ -47,15 +47,20 @@ export function compareVersions(a, b) {
 }
 
 function dependencyFingerprint() {
-  const hash = crypto.createHash('sha256');
-  for (const f of ['package.json', 'package-lock.json']) {
+  // 버전 번호만 바뀐 업데이트에서는 npm install 을 건너뛰도록 의존성 정보만 비교한다.
+  const read = (f) => {
     try {
-      hash.update(fs.readFileSync(path.join(ROOT_DIR, f)));
+      return readJson(path.join(ROOT_DIR, f));
     } catch {
-      /* 파일이 없을 수 있다 */
+      return {};
     }
-  }
-  return hash.digest('hex');
+  };
+  const pkg = read('package.json');
+  const { '': _root, ...lockPackages } = read('package-lock.json').packages || {};
+  return crypto
+    .createHash('sha256')
+    .update(JSON.stringify([pkg.dependencies || {}, lockPackages]))
+    .digest('hex');
 }
 
 export function ensureDependencies({ force = false, log = console.log } = {}) {
