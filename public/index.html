@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>리뷰답글 도우미</title>
+  <meta name="description" content="배달앱·지도앱 리뷰에 가게 말투로 답글 초안을 만들어 드립니다.">
+  <meta name="theme-color" content="#F0532B">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="리뷰답글">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div id="update-banner" class="banner" hidden>
+    <span id="update-text">새 버전이 준비됐어요.</span>
+    <button id="update-apply" class="btn btn-small btn-light" type="button">지금 적용</button>
+  </div>
+  <div id="app" class="app" aria-live="polite">
+    <div class="boot">
+      <img src="/icons/icon-192.png" alt="" width="72" height="72">
+      <p>불러오는 중...</p>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript>이 앱을 사용하려면 자바스크립트를 켜 주세요.</noscript>
+</body>
+</html>

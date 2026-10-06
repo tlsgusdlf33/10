@@ -1,0 +1,20 @@
+{
+  "name": "review-reply-helper",
+  "productName": "리뷰답글 도우미",
+  "version": "1.0.0",
+  "description": "소상공인 리뷰 답글 초안 자동 생성 도구 (PC·모바일 동기화, 자동 업데이트)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "app": "node --disable-warning=ExperimentalWarning scripts/launch.js",
+    "update": "node --disable-warning=ExperimentalWarning scripts/updater.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  }
+}

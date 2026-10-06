@@ -1,0 +1,17 @@
+{
+  "name": "review-reply-helper-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "리뷰답글 도우미 스토어 배포용 앱 껍데기 (Capacitor). 화면과 기능은 서버에서 불러오므로 앱 재배포 없이 업데이트된다.",
+  "scripts": {
+    "android": "cap add android && cap sync android && cap open android",
+    "ios": "cap add ios && cap sync ios && cap open ios",
+    "sync": "cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2"
+  }
+}

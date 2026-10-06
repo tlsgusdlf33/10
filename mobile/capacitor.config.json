@@ -1,0 +1,16 @@
+{
+  "appId": "kr.reviewreply.helper",
+  "appName": "리뷰답글 도우미",
+  "webDir": "www",
+  "server": {
+    "url": "https://YOUR-SERVER-DOMAIN",
+    "cleartext": false
+  },
+  "android": {
+    "backgroundColor": "#FFF8F4"
+  },
+  "ios": {
+    "backgroundColor": "#FFF8F4",
+    "contentInset": "always"
+  }
+}

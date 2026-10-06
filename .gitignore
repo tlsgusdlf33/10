@@ -1,0 +1,8 @@
+node_modules/
+data/
+.env
+*.log
+.update-tmp/
+mobile/android/
+mobile/ios/
+mobile/node_modules/

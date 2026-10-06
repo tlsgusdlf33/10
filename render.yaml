@@ -1,0 +1,24 @@
+# Render.com 원클릭 배포 설정 (Blueprint). 저장소에 push 하면 자동으로 새 버전이 배포되고,
+# 접속 중인 PC·휴대폰 앱은 "새 버전이 준비됐어요" 안내 후 재설치 없이 갱신된다.
+services:
+  - type: web
+    name: review-reply-helper
+    runtime: docker
+    plan: starter
+    autoDeploy: true
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: PAYMENT_URL
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: ANTHROPIC_EFFORT
+        value: low
