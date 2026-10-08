@@ -19,13 +19,13 @@ async function call(method, url, { token, body } = {}) {
 }
 
 async function signup(email, password = 'password123', device = 'test') {
-  const r = await call('POST', '/api/auth/signup', { body: { email, password, device } });
+  const r = await call('POST', '/api/auth/signup', { body: { email, password, device, agree: true } });
   assert.equal(r.status, 200, JSON.stringify(r.data));
   return r.data.token;
 }
 
 before(async () => {
-  app = createApp({ dataDir, anthropicApiKey: '', adminEmails: ['admin@test.kr'], freeMonthlyLimit: 2, port: 0 });
+  app = createApp({ dataDir, anthropicApiKey: '', adminEmails: ['admin@test.kr'], freeMonthlyLimit: 2, port: 0, jobs: false });
   await new Promise((resolve) => app.server.listen(0, '127.0.0.1', resolve));
   base = `http://127.0.0.1:${app.server.address().port}`;
 });
@@ -38,7 +38,7 @@ after(async () => {
 describe('계정', () => {
   test('가입, 중복 가입 거부, 로그인, 잘못된 비밀번호', async () => {
     await signup('owner@test.kr');
-    const dup = await call('POST', '/api/auth/signup', { body: { email: 'OWNER@test.kr', password: 'password123' } });
+    const dup = await call('POST', '/api/auth/signup', { body: { email: 'OWNER@test.kr', password: 'password123', agree: true } });
     assert.equal(dup.status, 409);
     const bad = await call('POST', '/api/auth/login', { body: { email: 'owner@test.kr', password: 'wrongpass1' } });
     assert.equal(bad.status, 401);
@@ -48,8 +48,8 @@ describe('계정', () => {
   });
 
   test('짧은 비밀번호와 잘못된 이메일은 거부', async () => {
-    assert.equal((await call('POST', '/api/auth/signup', { body: { email: 'x@test.kr', password: 'short' } })).status, 400);
-    assert.equal((await call('POST', '/api/auth/signup', { body: { email: 'not-an-email', password: 'password123' } })).status, 400);
+    assert.equal((await call('POST', '/api/auth/signup', { body: { email: 'x@test.kr', password: 'short', agree: true } })).status, 400);
+    assert.equal((await call('POST', '/api/auth/signup', { body: { email: 'not-an-email', password: 'password123', agree: true } })).status, 400);
   });
 
   test('로그인 없이 API 접근 불가', async () => {
@@ -68,14 +68,14 @@ describe('리뷰 답글 흐름', () => {
     assert.equal(store.data.tone, 'polite');
   });
 
-  test('리뷰를 넣으면 초안 3개가 생기고 승인·게시 상태로 바뀐다', async () => {
+  test('리뷰를 넣으면 초안 2개가 생기고 승인·게시 상태로 바뀐다', async () => {
     const created = await call('POST', '/api/reviews', {
       token,
       body: { platform: 'baemin', rating: 5, content: '김밥이 정말 맛있어요! 또 시킬게요', author: '초코', menu: '참치김밥' },
     });
     assert.equal(created.status, 200, JSON.stringify(created.data));
     const review = created.data.review;
-    assert.equal(review.drafts.length, 3);
+    assert.equal(review.drafts.length, 2);
     assert.equal(review.status, 'draft');
     assert.equal(review.sentiment, 'positive');
     assert.ok(review.drafts[0].text.includes('행복김밥'));

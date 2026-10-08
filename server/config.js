@@ -59,12 +59,35 @@ export function loadConfig(overrides = {}) {
     anthropicEffort: env.ANTHROPIC_EFFORT ?? 'low',
     // 관리자 이메일 (쉼표 구분): 요금제 변경 등 관리자 화면 접근 권한.
     adminEmails: list(env.ADMIN_EMAILS),
-    // 요금제
-    trialDays: int(env.TRIAL_DAYS, 14),
+    // 요금제: 첫 달 무료 체험 → 프로(정기결제) 또는 무료(월 사용량 제한)
+    trialDays: int(env.TRIAL_DAYS, 30),
     freeMonthlyLimit: int(env.FREE_MONTHLY_LIMIT, 10),
     proMonthlyLimit: int(env.PRO_MONTHLY_LIMIT, 2000),
-    priceText: env.PRICE_TEXT || '월 9,900원',
+    priceAmount: int(env.PRICE_AMOUNT, 9900),
+    priceText: env.PRICE_TEXT || `월 ${int(env.PRICE_AMOUNT, 9900).toLocaleString('ko-KR')}원`,
     paymentUrl: env.PAYMENT_URL || '',
+    // 토스페이먼츠 정기결제 (키가 없으면 결제 버튼 대신 PAYMENT_URL 안내)
+    tossClientKey: env.TOSS_CLIENT_KEY || '',
+    tossSecretKey: env.TOSS_SECRET_KEY || '',
+    // Google 비즈니스 프로필 공식 API 연동
+    googleClientId: env.GOOGLE_CLIENT_ID || '',
+    googleClientSecret: env.GOOGLE_CLIENT_SECRET || '',
+    // 외부에서 접속하는 주소 (OAuth·결제 후 돌아올 주소). 비우면 요청 주소로 계산한다.
+    publicUrl: (env.PUBLIC_URL || '').replace(/\/+$/, ''),
+    // 빌링키·연동 토큰 암호화 키 (64자리 hex). 비우면 data/secret.key 를 자동 생성해 쓴다.
+    secretKey: env.SECRET_KEY || '',
+    // 리뷰 원문 보관 기간(일). 지나면 자동 삭제한다.
+    retentionDays: int(env.RETENTION_DAYS, 365),
+    // 사업자 정보 (전자상거래법상 표시 사항, 약관·결제 화면에 노출)
+    business: {
+      name: env.BUSINESS_NAME || '',
+      owner: env.BUSINESS_OWNER || '',
+      regNo: env.BUSINESS_REG_NO || '',
+      mailOrderNo: env.BUSINESS_MAIL_ORDER_NO || '',
+      address: env.BUSINESS_ADDRESS || '',
+      email: env.BUSINESS_EMAIL || '',
+      phone: env.BUSINESS_PHONE || '',
+    },
     // 업데이트 설정 (scripts/updater.js 와 공유)
     updateManifestUrl: env.UPDATE_MANIFEST_URL || '',
     // 다른 출처(예: 모바일 앱 번들)에서 API 를 부를 때 허용할 Origin 목록

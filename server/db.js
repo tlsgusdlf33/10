@@ -66,6 +66,57 @@ const MIGRATIONS = [
     PRIMARY KEY (user_id, month)
   );
   `,
+  // v1.1: 가게 프로필 확장, 답글 수정률·안전 경고, 정기결제, 공식 API 연동
+  `
+  ALTER TABLE stores ADD COLUMN owner_title TEXT NOT NULL DEFAULT '';
+  ALTER TABLE stores ADD COLUMN signature_menus TEXT NOT NULL DEFAULT '';
+  ALTER TABLE reviews ADD COLUMN source TEXT NOT NULL DEFAULT 'paste';
+  ALTER TABLE reviews ADD COLUMN external_id TEXT;
+  ALTER TABLE reviews ADD COLUMN chosen_draft TEXT NOT NULL DEFAULT '';
+  ALTER TABLE reviews ADD COLUMN edit_rate REAL;
+  ALTER TABLE reviews ADD COLUMN approved_at TEXT;
+  ALTER TABLE reviews ADD COLUMN publish_error TEXT NOT NULL DEFAULT '';
+  CREATE UNIQUE INDEX idx_reviews_external ON reviews(user_id, external_id) WHERE external_id IS NOT NULL;
+  CREATE TABLE subscriptions (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    customer_key TEXT NOT NULL,
+    billing_key TEXT NOT NULL,
+    card_label TEXT NOT NULL DEFAULT '',
+    amount INTEGER NOT NULL,
+    next_billing_at TEXT NOT NULL,
+    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+    fail_count INTEGER NOT NULL DEFAULT 0,
+    canceled_at TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    order_id TEXT NOT NULL UNIQUE,
+    amount INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    payment_key TEXT NOT NULL DEFAULT '',
+    message TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX idx_payments_user ON payments(user_id, created_at DESC);
+  CREATE TABLE integrations (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL,
+    refresh_token TEXT NOT NULL,
+    access_token TEXT NOT NULL DEFAULT '',
+    access_expires_at INTEGER NOT NULL DEFAULT 0,
+    account_name TEXT NOT NULL DEFAULT '',
+    location_name TEXT NOT NULL DEFAULT '',
+    location_title TEXT NOT NULL DEFAULT '',
+    connected_at TEXT NOT NULL,
+    last_synced_at TEXT,
+    last_error TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (user_id, provider)
+  );
+  `,
 ];
 
 export function openDatabase(dataDir) {

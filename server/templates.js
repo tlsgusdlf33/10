@@ -129,11 +129,14 @@ export function generateLocal(review, store) {
   const pick = seeded(`${review.content}|${review.rating}|${store.name}`);
   const tone = TONES[store.tone] || TONES.friendly;
   const storeName = store.name?.trim() || '저희 가게';
+  const ownerTitle = store.owner_title?.trim();
+  // "행복김밥 사장입니다"처럼 사장님 호칭이 있으면 인사에 함께 쓴다.
+  const speaker = ownerTitle ? `${storeName} ${ownerTitle}` : storeName;
   const author = review.author?.trim();
   const fill = (s) =>
     s
-      .replaceAll('{store}', storeName)
-      .replaceAll('{yeyo}', hasFinalConsonant(storeName) ? '이에요' : '예요')
+      .replaceAll('{store}', speaker)
+      .replaceAll('{yeyo}', hasFinalConsonant(speaker) ? '이에요' : '예요')
       .replaceAll('{name}', author ? ` ${author}님` : '');
   const emojiOn = store.emoji !== 'none';
   const emoji = (kind) => (emojiOn ? ` ${pick(EMOJI[kind] || EMOJI.positive)}` : '');
@@ -149,6 +152,12 @@ export function generateLocal(review, store) {
     parts.body.push(sentenceEnd(pick(tone.thanks)) + emoji('positive'));
     for (const p of analysis.praises.slice(0, 2)) parts.body.push(sentenceEnd(pick(PRAISE_LINES[p.key])));
     if (menu) parts.body.push(`${menu} 마음에 드셨다니 더 정성껏 만들게요.`);
+    // 대표 메뉴 중 리뷰에 없는 메뉴를 하나 권한다.
+    const signatureMenu = String(store.signature_menus || '')
+      .split(/[,\n]/)
+      .map((m) => m.trim())
+      .find((m) => m && !review.content.includes(m) && !(menu || '').includes(m));
+    if (signatureMenu) parts.body.push(`다음에는 저희 대표 메뉴 ${signatureMenu}도 꼭 드셔 보세요.`);
   } else {
     parts.body.push(sentenceEnd(analysis.sentiment === 'negative' ? pick(tone.sorry) : pick(tone.thanks)));
     for (const p of analysis.praises.slice(0, 1)) parts.body.push(sentenceEnd(pick(PRAISE_LINES[p.key])));
@@ -164,32 +173,19 @@ export function generateLocal(review, store) {
   const sign = signature ? `\n${signature}` : '';
   const standard = [parts.opening, ...parts.body, parts.closing].join(' ') + sign;
   const short = [parts.opening, parts.body[0], fixes[0], parts.closing].filter(Boolean).join(' ') + sign;
-  const warmExtra =
-    analysis.sentiment === 'positive'
-      ? '바쁘신 와중에 시간 내어 글까지 남겨주신 마음 덕분에 오늘 하루도 힘내서 준비합니다.'
-      : '한 분 한 분의 식사가 저희에게는 가장 중요하기에, 이번 일을 계기로 더 나아진 모습 보여드리겠습니다.';
-  const warm = [parts.opening, ...parts.body, warmExtra, parts.closing].join(' ') + sign;
 
   const drafts = [
     { label: '기본', text: standard },
-    { label: '짧게', text: short },
-    { label: '정성 가득', text: warm },
+    { label: '짧고 담백하게', text: short },
   ];
 
   let calmReply = '';
-  let guidance = '';
   if (analysis.isMalicious) {
     calmReply =
-      `안녕하세요, ${storeName}입니다. 이용 후 의견 남겨주셔서 감사합니다. ` +
+      `안녕하세요, ${speaker}입니다. 이용 후 의견 남겨주셔서 감사합니다. ` +
       '말씀하신 내용은 주문 내역과 매장 상황을 함께 확인하고 있으나, 구체적인 상황을 알기 어려워 정확한 확인이 필요합니다. ' +
       '불편하신 점이 있으셨다면 매장으로 직접 연락 주시면 성실히 확인해 드리겠습니다. 다른 고객님들께서도 참고하실 수 있도록 정중히 답변드립니다.' +
       sign;
-    guidance = [
-      '1) 욕설·비방·허위 내용은 답글보다 먼저 플랫폼의 "리뷰 신고(게시 중단 요청)" 기능을 이용하세요.',
-      '2) 답글에는 감정적인 반박, 고객 개인정보, 주문 상세 내용을 쓰지 마세요.',
-      '3) 주문 내역·통화 기록·사진 등 증빙을 캡처해 보관하세요.',
-      '4) 보상을 조건으로 별점을 요구하면 응하지 말고 플랫폼 고객센터에 알리세요.',
-    ].join('\n');
   }
 
   return {
@@ -197,8 +193,13 @@ export function generateLocal(review, store) {
     isMalicious: analysis.isMalicious,
     maliciousReason: analysis.maliciousReason,
     keyPoints: [...analysis.praises.map((p) => p.label), ...analysis.complaints.map((c) => c.label)],
+    praises: analysis.praises.map((p) => p.label),
+    complaints: analysis.complaints.map((c) => c.label),
     drafts,
     calmReply,
-    guidance,
   };
 }
+
+// 리포트 집계를 위해 AI 엔진도 같은 분류 이름을 쓰도록 공유한다.
+export const COMPLAINT_TAGS = [...COMPLAINTS.map((c) => c.label), '위생', '기타 불만'];
+export const PRAISE_TAGS = [...PRAISES.map((p) => p.label), '가성비', '기타 칭찬'];
